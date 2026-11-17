@@ -13,7 +13,7 @@ const ALL_USERS = 'All Users';
 const EDITOR_ALL = 'Everyone'; // name the editor uses internally for insertEditingRegion()
 
 const USERS = [
-  { name: ALL_USERS, icon: '⚪', color: '#BDBDBD' },
+  { name: ALL_USERS, icon: '🟨', color: '#FFFF00' },
   { name: 'Legal Reviewer', icon: '🟦', color: '#90CAF9' },
   { name: 'Finance User', icon: '🟩', color: '#A5D6A7' },
   { name: 'Manager', icon: '🟧', color: '#FFCC80' },
