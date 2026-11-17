@@ -1,0 +1,1 @@
+# react-docx-editor-editable-regions
