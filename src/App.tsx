@@ -40,7 +40,7 @@ function App() {
   const [protectedDoc, setProtectedDoc] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [regionType, setRegionType] = useState<'all' | 'specific'>('all');
-  const [dialogUser, setDialogUser] = useState(SPECIFIC_USERS[0].name);
+  const [dialogUsers, setDialogUsers] = useState<string[]>([SPECIFIC_USERS[0].name]);
   const [regionName, setRegionName] = useState('');
   const [message, setMessage] = useState('');
 
@@ -94,19 +94,23 @@ function App() {
   const insertRegion = () => {
     const de = editor();
     if (!de) return;
-    if (regionType === 'all') {
-      de.editor.insertEditingRegion();
-    } else {
-      de.editor.insertEditingRegion(dialogUser);
+    if (regionType === 'specific' && dialogUsers.length === 0) {
+      setMessage('Select at least one user.');
+      return;
     }
+    const targets = regionType === 'all' ? [ALL_USERS] : dialogUsers;
+    // The selection stays on the same content after each insert, so one
+    // region is added per selected user over the same range.
+    targets.forEach(user => {
+      if (user === ALL_USERS) de.editor.insertEditingRegion();
+      else de.editor.insertEditingRegion(user);
+    });
+    const name = regionName.trim() || 'Untitled region';
     setRegions(r => [
       ...r,
-      {
-        id: nextId.current++,
-        user: regionType === 'all' ? ALL_USERS : dialogUser,
-        name: regionName.trim() || 'Untitled region'
-      }
+      ...targets.map(user => ({ id: nextId.current++, user, name }))
     ]);
+    setMessage('');
     setDialogOpen(false);
   };
 
@@ -226,23 +230,26 @@ function App() {
                   checked={regionType === 'specific'}
                   onChange={() => setRegionType('specific')}
                 />{' '}
-                Specific User
+                Specific User(s)
               </label>
             </fieldset>
-            <label className="field">
-              User
-              <select
-                value={dialogUser}
-                disabled={regionType !== 'specific'}
-                onChange={e => setDialogUser(e.target.value)}
-              >
-                {SPECIFIC_USERS.map(u => (
-                  <option key={u.name} value={u.name}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <fieldset disabled={regionType !== 'specific'}>
+              <legend>Users (select one or more)</legend>
+              {SPECIFIC_USERS.map(u => (
+                <label key={u.name}>
+                  <input
+                    type="checkbox"
+                    checked={dialogUsers.includes(u.name)}
+                    onChange={e =>
+                      setDialogUsers(list =>
+                        e.target.checked ? [...list, u.name] : list.filter(n => n !== u.name)
+                      )
+                    }
+                  />{' '}
+                  {u.icon} {u.name}
+                </label>
+              ))}
+            </fieldset>
             <label className="field">
               Region name
               <input value={regionName} onChange={e => setRegionName(e.target.value)} />
