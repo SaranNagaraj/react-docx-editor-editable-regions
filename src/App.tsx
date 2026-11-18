@@ -13,29 +13,20 @@ const ALL_USERS = 'All Users';
 const EDITOR_ALL = 'Everyone'; // name the editor uses internally for insertEditingRegion()
 
 const USERS = [
-  { name: ALL_USERS, icon: '🟨', color: '#FFFF00' },
-  { name: 'Legal Reviewer', icon: '🟦', color: '#90CAF9' },
-  { name: 'Finance User', icon: '🟩', color: '#A5D6A7' },
-  { name: 'Manager', icon: '🟧', color: '#FFCC80' },
-  { name: 'Administrator', icon: '🟪', color: '#CE93D8' }
+  { name: ALL_USERS, color: '#FFFF00' },
+  { name: 'Legal Reviewer', color: '#1E88E5' },
+  { name: 'Finance User', color: '#43A047' },
+  { name: 'Manager', color: '#FB8C00' },
+  { name: 'Administrator', color: '#8E24AA' }
 ];
 const SPECIFIC_USERS = USERS.slice(1);
 
 const colorOf = (editorUser: string) =>
   USERS.find(u => u.name === (editorUser === EDITOR_ALL ? ALL_USERS : editorUser))?.color;
-const userOf = (name: string) => USERS.find(u => u.name === name)!;
-
-interface Region {
-  id: number;
-  user: string; // ALL_USERS or a specific user name
-  name: string;
-}
 
 function App() {
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null);
-  const nextId = useRef(1);
 
-  const [regions, setRegions] = useState<Region[]>([]);
   const [currentUser, setCurrentUser] = useState(ALL_USERS);
   const [protectedDoc, setProtectedDoc] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -105,11 +96,6 @@ function App() {
       if (user === ALL_USERS) de.editor.insertEditingRegion();
       else de.editor.insertEditingRegion(user);
     });
-    const name = regionName.trim() || 'Untitled region';
-    setRegions(r => [
-      ...r,
-      ...targets.map(user => ({ id: nextId.current++, user, name }))
-    ]);
     setMessage('');
     setDialogOpen(false);
   };
@@ -173,38 +159,16 @@ function App() {
                   className={u.name === currentUser ? 'active' : ''}
                   onClick={() => selectUser(u.name)}
                 >
-                  {u.icon} {u.name}
+                  <span
+                    className="user-badge"
+                    style={{ backgroundColor: u.color }}
+                    aria-hidden="true"
+                  />
+                  {u.name}
                 </button>
               </li>
             ))}
           </ul>
-
-          <h3>Editable Region Summary</h3>
-          <table className="summary">
-            <thead>
-              <tr>
-                <th>Color</th>
-                <th>Type</th>
-                <th>User</th>
-                <th>Region</th>
-              </tr>
-            </thead>
-            <tbody>
-              {regions.length === 0 && (
-                <tr>
-                  <td colSpan={4}>No regions yet</td>
-                </tr>
-              )}
-              {regions.map(r => (
-                <tr key={r.id}>
-                  <td>{userOf(r.user).icon}</td>
-                  <td>{r.user === ALL_USERS ? 'All Users' : 'User Specific'}</td>
-                  <td>{r.user}</td>
-                  <td>{r.name}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </aside>
       </div>
 
@@ -221,6 +185,11 @@ function App() {
                   checked={regionType === 'all'}
                   onChange={() => setRegionType('all')}
                 />{' '}
+                <span
+                  className="user-badge"
+                  style={{ backgroundColor: USERS[0].color }}
+                  aria-hidden="true"
+                />
                 All Users
               </label>
               <label>
@@ -246,7 +215,12 @@ function App() {
                       )
                     }
                   />{' '}
-                  {u.icon} {u.name}
+                  <span
+                    className="user-badge"
+                    style={{ backgroundColor: u.color }}
+                    aria-hidden="true"
+                  />
+                  {u.name}
                 </label>
               ))}
             </fieldset>
